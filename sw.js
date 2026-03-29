@@ -4,8 +4,15 @@
 const CACHE_NAME = 'mobile-notify-v1';
 
 // ─── 설치 & 활성화 ─────────────────────────────────────────────────────────────
+// [수정됨] 기존 install 이벤트를 덮어씁니다.
 self.addEventListener('install', (event) => {
     console.log('[SW] 설치 완료');
+    // [신규 추가] 기본 페이지 캐싱 추가
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.add('/');
+        })
+    );
     self.skipWaiting();
 });
 
@@ -121,7 +128,17 @@ self.addEventListener('push', (event) => {
 });
 
 // ─── fetch 핸들러 (PWA 설치 조건 충족) ──────────────────────────────────────
+// [수정됨] 기존 fetch 이벤트를 덮어씁니다.
 self.addEventListener('fetch', (event) => {
-    // 네트워크 우선 전략: 그대로 통과시킴 (캐싱 없이)
-    event.respondWith(fetch(event.request));
+    // [신규 추가] 네비게이션 요청(HTML 페이지 요청)에 대해 오프라인 대응
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return caches.match('/');
+            })
+        );
+    } else {
+        // [수정됨] 기타 요청은 기존 네트워크 우선 전략 유지
+        event.respondWith(fetch(event.request));
+    }
 });
