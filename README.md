@@ -21,6 +21,7 @@
 | ⚙️ Service Worker | 탭이 정지되어도 백그라운드에서 API 응답 수신 |
 | 🔒 Wake Lock | 화면이 켜진 동안 탭 정지 방지 |
 | 📱 PWA 지원 | 홈 화면에 설치해 앱처럼 사용 가능 |
+| 🎛️ 설정 패널 | SillyTavern 확장 패널에서 기능을 개별 on/off |
 
 ---
 
@@ -106,6 +107,7 @@ SillyTavern의 메인 HTML 파일(`public/index.html`)의 `<head>` 안에 다음
 mobile-notify/
 ├── manifest.json       # SillyTavern 확장 메타데이터
 ├── index.js            # 메인 확장 로직
+├── settings.html       # 확장 패널 설정 UI
 ├── sw.js               # Service Worker
 ├── pwa-manifest.json   # PWA 설치용 Web App Manifest
 ├── style.css           # 설정 UI 스타일
