@@ -1,0 +1,55 @@
+<div id="mobile_notify_settings">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>📱 Mobile Notify (모바일 알림)</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+            <div class="mobile-notify-settings">
+                <h4>알림 설정</h4>
+
+                <label class="checkbox_label">
+                    <input id="mobile_notify_enabled" type="checkbox" checked />
+                    <span>알림 활성화</span>
+                </label>
+
+                <label class="checkbox_label">
+                    <input id="mobile_notify_vibration" type="checkbox" checked />
+                    <span>진동 (Android)</span>
+                </label>
+
+                <label class="checkbox_label">
+                    <input id="mobile_notify_push" type="checkbox" checked />
+                    <span>푸시 알림 (백그라운드)</span>
+                </label>
+
+                <label class="checkbox_label">
+                    <input id="mobile_notify_wakelock" type="checkbox" checked />
+                    <span>Wake Lock (탭 정지 방지)</span>
+                </label>
+
+                <hr />
+
+                <h4>상태</h4>
+                <div id="mobile_notify_status" class="mobile-notify-status">
+                    <span>Service Worker: <span id="mobile_notify_sw_status">확인 중...</span></span><br/>
+                    <span>알림 권한: <span id="mobile_notify_perm_status">확인 중...</span></span><br/>
+                    <span>Wake Lock: <span id="mobile_notify_wl_status">확인 중...</span></span>
+                </div>
+
+                <hr />
+
+                <div class="flex-container mobile-notify-buttons">
+                    <div id="mobile_notify_test" class="menu_button menu_button_icon">
+                        <i class="fa-solid fa-bell"></i>
+                        <span>테스트 알림</span>
+                    </div>
+                    <div id="mobile_notify_request_perm" class="menu_button menu_button_icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>권한 요청</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -45,4 +45,11 @@
     font-size: 0.8em;
     color: var(--SmartThemeShadowColor, #888);
     margin-top: 4px;
+    line-height: 1.6;
+}
+
+.mobile-notify-buttons {
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
 }

@@ -1,12 +1,33 @@
 import { eventSource, event_types } from '../../../../script.js';
 
 const extensionName = 'mobile-notify';
-const SW_PATH = '/scripts/extensions/third-party/mobile-notify/sw.js';
+const EXTENSION_FOLDER = 'mobile-notify';
+const SW_PATH = `/scripts/extensions/third-party/${EXTENSION_FOLDER}/sw.js`;
+const SETTINGS_PATH = `/scripts/extensions/third-party/${EXTENSION_FOLDER}/settings.html`;
 const VIBRATION_PATTERN = [200, 100, 400];
+
+const defaultSettings = {
+    enabled: true,
+    vibration: true,
+    push: true,
+    wakelock: true,
+};
 
 let wakeLock = null;
 let lastNotifyTime = 0;
 const NOTIFY_COOLDOWN_MS = 3000; // 3초 이내 중복 알림 방지
+
+function getSettings() {
+    const ctx = SillyTavern.getContext();
+    if (!ctx.extensionSettings[extensionName]) {
+        ctx.extensionSettings[extensionName] = { ...defaultSettings };
+    }
+    return ctx.extensionSettings[extensionName];
+}
+
+function saveSettings() {
+    SillyTavern.getContext().saveSettingsDebounced();
+}
 
 // ─── Service Worker 등록 ───────────────────────────────────────────────────────
 async function registerServiceWorker() {
@@ -68,21 +89,145 @@ document.addEventListener('visibilitychange', async () => {
     }
 });
 
+// ─── 상태 UI 업데이트 ──────────────────────────────────────────────────────────
+function updateStatusUI() {
+    const swStatus = document.getElementById('mobile_notify_sw_status');
+    const permStatus = document.getElementById('mobile_notify_perm_status');
+    const wlStatus = document.getElementById('mobile_notify_wl_status');
+
+    if (swStatus) {
+        if (!('serviceWorker' in navigator)) {
+            swStatus.textContent = '미지원';
+        } else if (navigator.serviceWorker.controller) {
+            swStatus.textContent = '활성';
+        } else {
+            swStatus.textContent = '대기 중';
+        }
+    }
+
+    if (permStatus) {
+        if (!('Notification' in window)) {
+            permStatus.textContent = '미지원';
+        } else {
+            permStatus.textContent = Notification.permission === 'granted' ? '허용됨' :
+                Notification.permission === 'denied' ? '거부됨' : '미설정';
+        }
+    }
+
+    if (wlStatus) {
+        wlStatus.textContent = wakeLock ? '활성' : '비활성';
+    }
+}
+
+// ─── 설정 UI 동기화 ────────────────────────────────────────────────────────────
+function loadSettingsUI() {
+    const settings = getSettings();
+    const ids = ['enabled', 'vibration', 'push', 'wakelock'];
+    for (const key of ids) {
+        const el = document.getElementById(`mobile_notify_${key}`);
+        if (el) el.checked = Boolean(settings[key]);
+    }
+    updateStatusUI();
+}
+
+// ─── 확장 컨트롤 HTML 삽입 ────────────────────────────────────────────────────
+async function addExtensionControls() {
+    try {
+        const settingsHtml = await $.get(SETTINGS_PATH);
+        $('#extensions_settings2').append(settingsHtml);
+        loadSettingsUI();
+        setupUIListeners();
+    } catch (err) {
+        console.error(`[${extensionName}] settings.html 로드 실패:`, err);
+    }
+}
+
+// ─── UI 이벤트 핸들러 ─────────────────────────────────────────────────────────
+function setupUIListeners() {
+    const settings = getSettings();
+
+    $('#mobile_notify_enabled').on('change', function () {
+        settings.enabled = this.checked;
+        saveSettings();
+    });
+
+    $('#mobile_notify_vibration').on('change', function () {
+        settings.vibration = this.checked;
+        saveSettings();
+    });
+
+    $('#mobile_notify_push').on('change', function () {
+        settings.push = this.checked;
+        saveSettings();
+    });
+
+    $('#mobile_notify_wakelock').on('change', async function () {
+        settings.wakelock = this.checked;
+        saveSettings();
+        if (this.checked) {
+            await requestWakeLock();
+        } else if (wakeLock) {
+            await wakeLock.release();
+            wakeLock = null;
+        }
+        updateStatusUI();
+    });
+
+    $('#mobile_notify_test').on('click', () => {
+        sendNotification('테스트 알림', 'Mobile Notify가 정상 작동 중입니다! 🎉', /* force= */ true);
+    });
+
+    $('#mobile_notify_request_perm').on('click', async () => {
+        await requestNotificationPermission();
+        updateStatusUI();
+    });
+}
+
+// ─── 알림 전송 헬퍼 ────────────────────────────────────────────────────────────
+function sendNotification(title, body, force = false) {
+    const settings = getSettings();
+
+    if (!force && !settings.enabled) return;
+
+    if (settings.vibration && 'vibrate' in navigator) {
+        navigator.vibrate(VIBRATION_PATTERN);
+    }
+
+    if ((force || settings.push) && 'Notification' in window && Notification.permission === 'granted') {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SHOW_NOTIFICATION',
+                title,
+                body,
+            });
+        } else {
+            new Notification(title, {
+                body,
+                icon: '/img/ai4.png',
+                tag: 'st-response',
+            });
+        }
+    }
+}
+
 // ─── 답변 수신 핸들러 ──────────────────────────────────────────────────────────
 function onMessageReceived() {
+    const settings = getSettings();
+    if (!settings.enabled) return;
+
     // MESSAGE_RECEIVED와 GENERATION_ENDED가 동시에 발화할 수 있으므로 중복 방지
     const now = Date.now();
     if (now - lastNotifyTime < NOTIFY_COOLDOWN_MS) return;
     lastNotifyTime = now;
 
     // 1. 진동 (Android Chrome 지원)
-    if ('vibrate' in navigator) {
+    if (settings.vibration && 'vibrate' in navigator) {
         navigator.vibrate(VIBRATION_PATTERN);
         console.log(`[${extensionName}] 진동 알림 전송`);
     }
 
     // 2. 탭이 백그라운드에 있으면 푸시 알림
-    if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+    if (settings.push && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
         // Service Worker를 통한 알림 (더 안정적)
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({
@@ -106,9 +251,12 @@ function onMessageReceived() {
 jQuery(async () => {
     console.log(`[${extensionName}] 확장 로드됨`);
 
+    await addExtensionControls();
     await registerServiceWorker();
     await requestNotificationPermission();
     await requestWakeLock();
+
+    updateStatusUI();
 
     eventSource.on(event_types.MESSAGE_RECEIVED, onMessageReceived);
     eventSource.on(event_types.GENERATION_ENDED, onMessageReceived);
