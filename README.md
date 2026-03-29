@@ -37,11 +37,25 @@ cd SillyTavern/public/scripts/extensions/third-party/
 git clone https://github.com/pointhuh-netizen/stmo mobile-notify
 ```
 
-### 2. SillyTavern 재시작
+### 2. sw.js를 SillyTavern public 루트에 복사 ⚠️ 필수!
+
+브라우저 보안 정책상 Service Worker는 자신이 위치한 경로보다 상위 scope를 가질 수 없습니다.  
+SillyTavern 전체에서 알림이 동작하려면 **sw.js를 public 폴더 루트에 복사**해야 합니다:
+
+```bash
+cp SillyTavern/public/scripts/extensions/third-party/mobile-notify/sw.js SillyTavern/public/sw.js
+```
+
+> 확장을 `data/default-user/extensions/` 경로에 설치한 경우:
+> ```bash
+> cp SillyTavern/data/default-user/extensions/mobile-notify/sw.js SillyTavern/public/sw.js
+> ```
+
+### 3. SillyTavern 재시작
 
 서버를 재시작하면 **Extensions** 메뉴에서 **Mobile Notify (모바일 알림)** 이 표시됩니다.
 
-### 3. PWA manifest 연결 (선택 — iOS 알림에 필수)
+### 4. PWA manifest 연결 (선택 — iOS 알림에 필수)
 
 SillyTavern의 메인 HTML 파일(`public/index.html`)의 `<head>` 안에 다음 한 줄을 추가합니다:
 

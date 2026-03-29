@@ -2,7 +2,7 @@ import { eventSource, event_types } from '../../../../script.js';
 
 const extensionName = 'mobile-notify';
 const EXTENSION_FOLDER = 'mobile-notify';
-const SW_PATH = `/scripts/extensions/third-party/${EXTENSION_FOLDER}/sw.js`;
+const SW_PATH = '/sw.js';
 const SETTINGS_PATH = `/scripts/extensions/third-party/${EXTENSION_FOLDER}/settings.html`;
 const VIBRATION_PATTERN = [200, 100, 400];
 
@@ -36,11 +36,13 @@ async function registerServiceWorker() {
         return;
     }
     try {
-        const reg = await navigator.serviceWorker.register(SW_PATH, { scope: '/' });
+        // sw.js가 루트(/)에 있으면 scope도 자동으로 /가 됨
+        const reg = await navigator.serviceWorker.register(SW_PATH);
         console.log(`[${extensionName}] Service Worker 등록 완료:`, reg.scope);
         listenForSWMessages();
     } catch (err) {
         console.error(`[${extensionName}] Service Worker 등록 실패:`, err);
+        console.warn(`[${extensionName}] sw.js를 SillyTavern/public/ 루트에 복사했는지 확인하세요.`);
     }
 }
 
