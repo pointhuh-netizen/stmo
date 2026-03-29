@@ -1,0 +1,11 @@
+{
+    "display_name": "Mobile Notify (모바일 알림)",
+    "loading_order": 100,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "pointhuh-netizen",
+    "version": "1.0.0",
+    "description": "AI 답변 도착 시 백그라운드에서도 진동과 푸시 알림을 보내는 모바일 편의 확장"
+}
