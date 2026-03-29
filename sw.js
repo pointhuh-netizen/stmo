@@ -119,3 +119,9 @@ self.addEventListener('push', (event) => {
         })
     );
 });
+
+// ─── fetch 핸들러 (PWA 설치 조건 충족) ──────────────────────────────────────
+self.addEventListener('fetch', (event) => {
+    // 네트워크 우선 전략: 그대로 통과시킴 (캐싱 없이)
+    event.respondWith(fetch(event.request));
+});
