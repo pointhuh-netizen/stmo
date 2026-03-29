@@ -1,0 +1,48 @@
+/* Mobile Notify — 설정 UI 스타일 */
+
+.mobile-notify-settings {
+    padding: 12px;
+    background-color: var(--SmartThemeBlurTintColor, rgba(0, 0, 0, 0.5));
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.mobile-notify-settings h4 {
+    margin: 0 0 8px 0;
+    font-size: 1em;
+    color: var(--SmartThemeBodyColor, #fff);
+}
+
+.mobile-notify-settings label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.9em;
+}
+
+.mobile-notify-settings input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--SmartThemeQuoteColor, #7b68ee);
+    cursor: pointer;
+}
+
+.mobile-notify-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    background-color: var(--SmartThemeQuoteColor, #7b68ee);
+    color: #fff;
+    margin-left: 4px;
+}
+
+.mobile-notify-status {
+    font-size: 0.8em;
+    color: var(--SmartThemeShadowColor, #888);
+    margin-top: 4px;
+}
